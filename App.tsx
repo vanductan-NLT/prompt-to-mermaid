@@ -11,7 +11,7 @@ const App: React.FC = () => {
       {
         id: 'welcome',
         role: 'bot',
-        content: 'Hi! I am your Mermaid Flowchart Generator. Describe a workflow or system design (e.g., "A CI/CD pipeline for a mobile app") and I will generate the diagram for you!',
+        content: 'Hi! I am your Mermaid Flowchart Generator. Describe a workflow or system design (e.g., "A CI/CD pipeline for a mobile app") and I will generate the diagram for you! You can type as much detail as you need.',
         timestamp: new Date()
       }
     ],
@@ -21,6 +21,7 @@ const App: React.FC = () => {
 
   const [input, setInput] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,19 +31,16 @@ const App: React.FC = () => {
     scrollToBottom();
   }, [state.messages]);
 
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+    }
+  }, [input]);
+
   const handleSend = async () => {
     if (!input.trim() || state.isLoading) return;
-    if (state.step === InteractionStep.COMPLETE) {
-      const resetMsg: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'bot',
-        content: 'Session complete. Start new for another flow.',
-        timestamp: new Date()
-      };
-      setState(prev => ({ ...prev, messages: [...prev.messages, resetMsg] }));
-      setInput('');
-      return;
-    }
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -107,8 +105,15 @@ const App: React.FC = () => {
     });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row h-screen overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row h-screen overflow-hidden text-slate-900">
       {/* Sidebar / Chat History */}
       <div className="w-full md:w-1/3 lg:w-1/4 bg-white border-r border-slate-200 flex flex-col h-full shadow-lg z-10">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-indigo-600 text-white">
@@ -125,17 +130,17 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        {/* Status Indicator */}
+        {/* Status Indicator - Now continuous refinement */}
         <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Session Progress</span>
-            <span className="text-xs font-medium text-indigo-600">Step {Math.min(state.step, 3)}/3</span>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Conversation Mode</span>
+            <span className="text-xs font-medium text-indigo-600 flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              Active Refinement
+            </span>
           </div>
           <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-indigo-500 transition-all duration-500"
-              style={{ width: `${(Math.min(state.step, 3) / 3) * 100}%` }}
-            ></div>
+            <div className="h-full bg-indigo-500 w-full opacity-50"></div>
           </div>
         </div>
 
@@ -146,7 +151,7 @@ const App: React.FC = () => {
               key={msg.id} 
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
+              <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm whitespace-pre-wrap ${
                 msg.role === 'user' 
                   ? 'bg-indigo-600 text-white' 
                   : 'bg-slate-100 border border-slate-200 text-slate-800'
@@ -170,28 +175,29 @@ const App: React.FC = () => {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Input Area */}
+        {/* Input Area - Textarea for unlimited input length feel */}
         <div className="p-4 border-t border-slate-200 bg-white">
-          <div className="relative">
-            <input
-              type="text"
+          <div className="relative flex items-end gap-2 bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
+            <textarea
+              ref={textareaRef}
+              rows={1}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder={state.step === InteractionStep.COMPLETE ? "Session complete..." : "Type description..."}
-              disabled={state.isLoading || state.step === InteractionStep.COMPLETE}
-              className="w-full pl-4 pr-12 py-3 bg-slate-100 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm outline-none text-slate-900 placeholder-slate-500 disabled:opacity-50"
+              onKeyDown={handleKeyDown}
+              placeholder="Describe your flow in detail..."
+              disabled={state.isLoading}
+              className="w-full bg-transparent border-none focus:ring-0 text-sm outline-none text-slate-900 placeholder-slate-500 disabled:opacity-50 resize-none max-h-[200px] py-1"
             />
             <button
               onClick={handleSend}
-              disabled={state.isLoading || !input.trim() || state.step === InteractionStep.COMPLETE}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-indigo-600 hover:text-indigo-800 disabled:text-slate-400 transition-colors"
+              disabled={state.isLoading || !input.trim()}
+              className="p-2 text-indigo-600 hover:text-indigo-800 disabled:text-slate-400 transition-colors flex-shrink-0"
             >
               <i className="fas fa-paper-plane"></i>
             </button>
           </div>
           <p className="text-[10px] text-center mt-2 text-slate-400 font-medium">
-            Powered by Gemini 3 Flash • Vietnamese & English
+            Shift + Enter for new line • No limit on description length
           </p>
         </div>
       </div>
@@ -222,7 +228,7 @@ const App: React.FC = () => {
 
         <main className="flex-1 p-8 overflow-y-auto">
           {state.currentMermaidCode ? (
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-6 pb-12">
               <MermaidRenderer code={state.currentMermaidCode} />
               
               <div className="bg-slate-900 text-slate-300 rounded-xl p-4 font-mono text-xs overflow-x-auto shadow-xl border border-slate-800">
@@ -258,7 +264,7 @@ const App: React.FC = () => {
               </div>
               <div className="text-center max-w-sm">
                 <p className="font-bold text-slate-800 text-lg">No diagram generated yet</p>
-                <p className="text-slate-500 mt-2">Describe your workflow or architecture in the chat to see the magic happen.</p>
+                <p className="text-slate-500 mt-2">Describe your workflow or architecture in the chat. You can provide very detailed descriptions.</p>
               </div>
             </div>
           )}
