@@ -20,6 +20,7 @@ const App: React.FC = () => {
   });
 
   const [input, setInput] = useState('');
+  const [copied, setCopied] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -112,6 +113,14 @@ const App: React.FC = () => {
     }
   };
 
+  const copyToClipboard = () => {
+    if (state.currentMermaidCode) {
+      navigator.clipboard.writeText(state.currentMermaidCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row h-screen overflow-hidden text-slate-900">
       {/* Sidebar / Chat History */}
@@ -130,7 +139,7 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        {/* Status Indicator - Now continuous refinement */}
+        {/* Status Indicator */}
         <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Conversation Mode</span>
@@ -175,7 +184,7 @@ const App: React.FC = () => {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Input Area - Textarea for unlimited input length feel */}
+        {/* Input Area */}
         <div className="p-4 border-t border-slate-200 bg-white">
           <div className="relative flex items-end gap-2 bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
             <textarea
@@ -215,12 +224,22 @@ const App: React.FC = () => {
           {state.currentMermaidCode && (
             <div className="flex gap-2">
                <button 
-                onClick={() => {
-                  navigator.clipboard.writeText(state.currentMermaidCode || '');
-                }}
-                className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg transition-all shadow-sm flex items-center gap-2"
+                onClick={copyToClipboard}
+                className={`px-4 py-2 border text-sm font-medium rounded-lg transition-all shadow-sm flex items-center gap-2 ${
+                  copied 
+                    ? 'bg-green-50 border-green-200 text-green-600' 
+                    : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+                }`}
               >
-                <i className="fas fa-copy"></i> Copy Code
+                {copied ? (
+                  <>
+                    <i className="fas fa-check animate-scale-up"></i> Copied!
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-copy"></i> Copy Code
+                  </>
+                )}
               </button>
             </div>
           )}
@@ -233,25 +252,13 @@ const App: React.FC = () => {
               
               <div className="bg-slate-900 text-slate-300 rounded-xl p-4 font-mono text-xs overflow-x-auto shadow-xl border border-slate-800">
                 <div className="flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
-                  <span className="text-slate-500 uppercase font-bold tracking-widest text-[10px]">Mermaid Syntax</span>
-                  <span className="text-indigo-400">Optimized for Draw.io</span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                    <span className="text-slate-500 uppercase font-bold tracking-widest text-[10px]">Mermaid Syntax</span>
+                  </div>
+                  <span className="text-indigo-400">Ready for Draw.io</span>
                 </div>
-                <pre className="text-slate-200">{state.currentMermaidCode}</pre>
-              </div>
-              
-              <div className="bg-white border border-indigo-100 p-4 rounded-xl flex items-start gap-4 shadow-sm">
-                <div className="p-2 bg-indigo-50 rounded-full">
-                  <i className="fas fa-info-circle text-indigo-500"></i>
-                </div>
-                <div className="text-sm text-slate-700">
-                  <p className="font-bold text-slate-900 mb-1">How to use in Draw.io:</p>
-                  <ol className="list-decimal ml-4 space-y-1 text-slate-600">
-                    <li>Copy the code block above.</li>
-                    <li>In Draw.io, click the <strong>+ (Insert)</strong> button.</li>
-                    <li>Choose <strong>Advanced</strong> &gt; <strong>Mermaid...</strong></li>
-                    <li>Paste the code and click <strong>Insert</strong>.</li>
-                  </ol>
-                </div>
+                <pre className="text-slate-200 leading-relaxed">{state.currentMermaidCode}</pre>
               </div>
             </div>
           ) : (
@@ -264,12 +271,21 @@ const App: React.FC = () => {
               </div>
               <div className="text-center max-w-sm">
                 <p className="font-bold text-slate-800 text-lg">No diagram generated yet</p>
-                <p className="text-slate-500 mt-2">Describe your workflow or architecture in the chat. You can provide very detailed descriptions.</p>
+                <p className="text-slate-500 mt-2 text-sm leading-relaxed">Describe your workflow or architecture in the chat. You can provide very detailed descriptions and I'll build it for you.</p>
               </div>
             </div>
           )}
         </main>
       </div>
+      <style>{`
+        @keyframes scale-up {
+          0% { transform: scale(0.5); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-scale-up {
+          animation: scale-up 0.2s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
