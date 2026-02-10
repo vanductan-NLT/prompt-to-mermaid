@@ -31,15 +31,20 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ code }) => {
       
       try {
         setError(null);
-        // Remove markdown backticks if they exist
+        // Clean markdown
         let cleanCode = code.replace(/```mermaid/g, '').replace(/```/g, '').trim();
+        
+        // Robust cleaning: ensure nodes following brackets are moved to new lines
+        // This handles cases like ...")]Node" which should be ...")] \n Node"
+        cleanCode = cleanCode.replace(/(\]\s*)([a-zA-Z0-9])/g, '$1\n$2');
+        cleanCode = cleanCode.replace(/(\)\s*)([a-zA-Z0-9])/g, '$1\n$2');
         
         // Remove %% Styling comment which can sometimes cause issues if empty
         cleanCode = cleanCode.replace(/%%\s*Styling\s*$/gm, '');
 
         const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
         
-        // Validate syntax before rendering
+        // Validate syntax
         const isValid = await mermaid.parse(cleanCode);
         if (isValid) {
           const { svg } = await mermaid.render(id, cleanCode);
@@ -66,7 +71,7 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ code }) => {
         <div className="bg-white border border-red-100 rounded-lg p-3 mb-4 text-xs font-mono overflow-x-auto max-h-40">
           {error}
         </div>
-        <p className="text-sm mb-3">The AI generated invalid Mermaid syntax. Try asking it to "Fix the syntax error" or "Simplify the labels".</p>
+        <p className="text-sm mb-3">The AI generated invalid Mermaid syntax. Try describing the issue or asking it to "Put each connection on a new line".</p>
         <div className="bg-slate-900 text-slate-400 p-3 rounded-lg text-[10px] font-mono overflow-x-auto">
           <pre>{code}</pre>
         </div>
