@@ -110,7 +110,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row h-screen overflow-hidden">
       {/* Sidebar / Chat History */}
-      <div className="w-full md:w-1/3 lg:w-1/4 bg-white border-r border-slate-200 flex flex-col h-full">
+      <div className="w-full md:w-1/3 lg:w-1/4 bg-white border-r border-slate-200 flex flex-col h-full shadow-lg z-10">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-indigo-600 text-white">
           <div className="flex items-center gap-2">
             <i className="fas fa-project-diagram text-2xl"></i>
@@ -140,7 +140,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Chat Feed */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
           {state.messages.map((msg) => (
             <div 
               key={msg.id} 
@@ -149,7 +149,7 @@ const App: React.FC = () => {
               <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
                 msg.role === 'user' 
                   ? 'bg-indigo-600 text-white' 
-                  : 'bg-white border border-slate-100 text-slate-700'
+                  : 'bg-slate-100 border border-slate-200 text-slate-800'
               }`}>
                 {msg.content}
                 <div className={`text-[10px] mt-1 opacity-60 ${msg.role === 'user' ? 'text-right' : ''}`}>
@@ -160,7 +160,7 @@ const App: React.FC = () => {
           ))}
           {state.isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white border border-slate-100 rounded-2xl px-4 py-3 shadow-sm flex gap-2">
+              <div className="bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 shadow-sm flex gap-2">
                 <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
                 <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></div>
@@ -171,7 +171,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Input Area */}
-        <div className="p-4 border-t border-slate-100 bg-white">
+        <div className="p-4 border-t border-slate-200 bg-white">
           <div className="relative">
             <input
               type="text"
@@ -180,7 +180,7 @@ const App: React.FC = () => {
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder={state.step === InteractionStep.COMPLETE ? "Session complete..." : "Type description..."}
               disabled={state.isLoading || state.step === InteractionStep.COMPLETE}
-              className="w-full pl-4 pr-12 py-3 bg-slate-100 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm outline-none disabled:opacity-50"
+              className="w-full pl-4 pr-12 py-3 bg-slate-100 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm outline-none text-slate-900 placeholder-slate-500 disabled:opacity-50"
             />
             <button
               onClick={handleSend}
@@ -190,7 +190,7 @@ const App: React.FC = () => {
               <i className="fas fa-paper-plane"></i>
             </button>
           </div>
-          <p className="text-[10px] text-center mt-2 text-slate-400">
+          <p className="text-[10px] text-center mt-2 text-slate-400 font-medium">
             Powered by Gemini 3 Flash • Vietnamese & English
           </p>
         </div>
@@ -198,7 +198,7 @@ const App: React.FC = () => {
 
       {/* Main Preview Area */}
       <div className="flex-1 bg-slate-50 overflow-hidden flex flex-col">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center px-8 justify-between">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center px-8 justify-between shadow-sm">
           <div className="flex items-center gap-3">
             <span className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
               <i className="fas fa-eye"></i>
@@ -212,7 +212,7 @@ const App: React.FC = () => {
                 onClick={() => {
                   navigator.clipboard.writeText(state.currentMermaidCode || '');
                 }}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg transition-all shadow-sm flex items-center gap-2"
               >
                 <i className="fas fa-copy"></i> Copy Code
               </button>
@@ -225,34 +225,40 @@ const App: React.FC = () => {
             <div className="max-w-4xl mx-auto space-y-6">
               <MermaidRenderer code={state.currentMermaidCode} />
               
-              <div className="bg-slate-800 text-slate-300 rounded-xl p-4 font-mono text-xs overflow-x-auto shadow-lg">
-                <div className="flex justify-between items-center mb-2 pb-2 border-b border-slate-700">
+              <div className="bg-slate-900 text-slate-300 rounded-xl p-4 font-mono text-xs overflow-x-auto shadow-xl border border-slate-800">
+                <div className="flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
                   <span className="text-slate-500 uppercase font-bold tracking-widest text-[10px]">Mermaid Syntax</span>
                   <span className="text-indigo-400">Optimized for Draw.io</span>
                 </div>
-                <pre>{state.currentMermaidCode}</pre>
+                <pre className="text-slate-200">{state.currentMermaidCode}</pre>
               </div>
               
-              <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-start gap-3">
-                <i className="fas fa-info-circle text-indigo-500 mt-1"></i>
-                <div className="text-sm text-indigo-700">
-                  <p className="font-semibold">How to use in Draw.io:</p>
-                  <ol className="list-decimal ml-4 mt-1 space-y-1">
-                    <li>Copy the code above.</li>
-                    <li>In Draw.io, go to <strong>+ (Insert)</strong> &gt; <strong>Advanced</strong> &gt; <strong>Mermaid...</strong></li>
+              <div className="bg-white border border-indigo-100 p-4 rounded-xl flex items-start gap-4 shadow-sm">
+                <div className="p-2 bg-indigo-50 rounded-full">
+                  <i className="fas fa-info-circle text-indigo-500"></i>
+                </div>
+                <div className="text-sm text-slate-700">
+                  <p className="font-bold text-slate-900 mb-1">How to use in Draw.io:</p>
+                  <ol className="list-decimal ml-4 space-y-1 text-slate-600">
+                    <li>Copy the code block above.</li>
+                    <li>In Draw.io, click the <strong>+ (Insert)</strong> button.</li>
+                    <li>Choose <strong>Advanced</strong> &gt; <strong>Mermaid...</strong></li>
                     <li>Paste the code and click <strong>Insert</strong>.</li>
                   </ol>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
-              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm">
-                <i className="fas fa-diagram-project text-4xl text-slate-200"></i>
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-6">
+              <div className="w-32 h-32 bg-white rounded-3xl flex items-center justify-center shadow-xl border border-slate-100 relative group transition-all hover:scale-105">
+                <i className="fas fa-diagram-project text-5xl text-slate-200 group-hover:text-indigo-100 transition-colors"></i>
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white shadow-lg">
+                  <i className="fas fa-sparkles text-sm"></i>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="font-medium text-slate-500">No diagram generated yet</p>
-                <p className="text-sm">Enter a description in the chat to begin</p>
+              <div className="text-center max-w-sm">
+                <p className="font-bold text-slate-800 text-lg">No diagram generated yet</p>
+                <p className="text-slate-500 mt-2">Describe your workflow or architecture in the chat to see the magic happen.</p>
               </div>
             </div>
           )}
