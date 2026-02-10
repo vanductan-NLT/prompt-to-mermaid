@@ -1,0 +1,5 @@
+{
+  "name": "Mermaid Flowchart Generator Bot",
+  "description": "An AI-powered tool that converts text descriptions into professional Mermaid.js diagrams for IT architecture and system design, following a simplified 3-step interaction process.",
+  "requestFramePermissions": []
+}
